@@ -9,6 +9,8 @@ export const savedMessage = (name: string): string =>
 
 export function registerServiceWorker(): void {
   if (!("serviceWorker" in navigator) || !isProduction() || isElectron()) return;
+  // Parent KingdomOS controls deployment and offline behavior for the embedded editor.
+  if (window.parent !== window && new URLSearchParams(location.search).get("kingdomos") === "1") return;
 
   const standalone = window.matchMedia("(display-mode: standalone)");
   const cacheOffline = (installed = false): void => {

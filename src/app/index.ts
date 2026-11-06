@@ -52,4 +52,6 @@ bindApp({
   isLinkable
 });
 
+import "./kingdomos-bridge";
+
 export { boot } from "./lifecycle";
