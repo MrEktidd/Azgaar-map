@@ -1,6 +1,7 @@
 // The app and map lifecycle: start the app, erase what is on screen, generate a new world, put it back
 
 import { restoreUi, syncOptionInputs } from "@/app/chrome/tabs/options-tab";
+import { isKingdomOSAtlas } from "@/app/kingdomos-mode";
 import { hideLoading, showLoading } from "@/app/loading";
 import { setSeed } from "@/app/seed";
 import { initShell, warnIfServerless } from "@/app/shell";
@@ -47,12 +48,18 @@ export async function boot(): Promise<void> {
   setViewportSize(options.map.graph.width, options.map.graph.height);
   applyDefaultViewboxEvents();
 
-  if (!warnIfServerless()) {
+  if (isKingdomOSAtlas()) {
+    // The native Atlas must never race a random initial generation against the
+    // authoritative .map that KingdomOS is about to import. Boot only the UI.
+    hideLoading();
+  } else if (!warnIfServerless()) {
     hideLoading();
     await checkLoadParameters();
   }
 
-  initiateAutosave();
+  // The Atlas is a read-only presentation. It must not overwrite Azgaar's
+  // last-saved map, which the unrestricted World Editor may rely on.
+  if (!isKingdomOSAtlas()) initiateAutosave();
   if (window.parent !== window && ["1", "atlas"].includes(new URLSearchParams(location.search).get("kingdomos") ?? "")) {
     window.dispatchEvent(new Event("kingdomos:booted"));
   }
