@@ -15,3 +15,9 @@ html[data-kingdomos-mode="atlas"] #tourPromptButton {display:none!important}
 
 html[data-kingdomos-mode="atlas"] #sticked {display:flex;justify-content:flex-end}
 html[data-kingdomos-mode="atlas"] #tooltip[data-main] {max-width:min(450px,70vw)}
+
+/* Native Azgaar view-only hides Style as well as editing tabs. KingdomOS allows
+ * presentation customization while keeping actual world editing disabled. */
+html[data-kingdomos-mode="atlas"] body.view-only #styleTab {
+  display:inline-block!important;
+}
