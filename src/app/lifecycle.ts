@@ -53,6 +53,9 @@ export async function boot(): Promise<void> {
   }
 
   initiateAutosave();
+  if (window.parent !== window && new URLSearchParams(location.search).get("kingdomos") === "1") {
+    window.dispatchEvent(new Event("kingdomos:booted"));
+  }
 }
 
 export type GenerationConfig = {

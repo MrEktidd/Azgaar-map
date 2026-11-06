@@ -6,7 +6,7 @@ import { VERSION } from "@/services/versioning";
 
 const PROTOCOL = "kingdomos-azgaar";
 const PROTOCOL_VERSION = 1;
-type Command = "summary" | "snapshot" | "import-map" | "new-map";
+type Command = "summary" | "snapshot" | "capture" | "import-map" | "new-map";
 const embedded = window.parent !== window && new URLSearchParams(location.search).get("kingdomos") === "1";
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -39,6 +39,24 @@ async function run(name: Command, payload: unknown): Promise<unknown> {
     const { Save } = await import("@/services/io/save");
     return { summary: summary(), mapText: Save.prepareMapData() };
   }
+
+  if (name === "capture") {
+    if (options.app.mode) throw new Error("Finish the current editing tool before sending the world to the Atlas.");
+    if (options.map.viewOnly) throw new Error("Cannot capture a view-only project as an editable world.");
+    // Keep native Azgaar project data and a genuine full-map visual preview together.
+    const { Save } = await import("@/services/io/save");
+    const mapText = Save.prepareMapData();
+    const capturedSummary = summary();
+    const { ExportMap } = await import("@/services/io/export");
+    const imageUrl = await ExportMap.getMapURL("svg", { fullMap: true });
+    const response = await fetch(imageUrl);
+    if (!response.ok) throw new Error("The Atlas preview could not be generated.");
+    const preview = await response.blob();
+    if (preview.size === 0 || preview.size > 80 * 1024 * 1024) {
+      throw new Error("The exported map preview is empty or exceeds 80 MB.");
+    }
+    return { summary: capturedSummary, mapText, preview };
+  }
   if (name === "import-map") {
     if (!isObject(payload) || !(payload.file instanceof Blob) ||
         typeof payload.name !== "string" || !/\.(map|gz)$/i.test(payload.name)) {
@@ -66,7 +84,7 @@ function receive(event: MessageEvent): void {
   if (!isObject(message) || message.protocol !== PROTOCOL ||
       message.version !== PROTOCOL_VERSION || message.kind !== "command") return;
   if (typeof message.id !== "string" || message.id.length > 100) return;
-  if (!["summary","snapshot","import-map","new-map"].includes(String(message.name))) return;
+  if (!["summary","snapshot","capture","import-map","new-map"].includes(String(message.name))) return;
   const id = message.id;
   void run(message.name as Command, message.payload)
     .then(value => send("result", "ok", value, id))
@@ -75,6 +93,9 @@ function receive(event: MessageEvent): void {
 
 if (embedded) {
   window.addEventListener("message", receive);
+  // Unlike "ready", booted means the initial map/load pipeline has completed,
+  // so a persisted KingdomOS workspace can safely replace Azgaar's startup map.
+  window.addEventListener("kingdomos:booted", () => send("event", "booted", summary()));
   window.addEventListener("map:generated", () => {
     try { send("event", "world-changed", summary()); } catch { /* map still starting */ }
   });
