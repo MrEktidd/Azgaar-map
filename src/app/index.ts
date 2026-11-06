@@ -1,6 +1,7 @@
 // The app's modules, loaded once the interface language's strings are: their markup is translated as they load
 import "@/model/globals";
 import "@/model/options/options-defaults";
+import "./kingdomos-mode";
 import "./chrome/tabs";
 import { changeCellsDensity, syncOptionInputs } from "./chrome/tabs/options-tab";
 import { isLinkable, MAP_COMMANDS } from "./map-commands";

@@ -1,5 +1,6 @@
 // The collapsible panel on the right and the sticked menu below it
 import { showExportPane, showLoadPane, showSavePane } from "@/app/chrome/io-panes";
+import { isKingdomOSAtlas } from "@/app/kingdomos-mode";
 import { regeneratePrompt } from "@/app/lifecycle";
 import { Controllers } from "@/controllers";
 import { ARROW_TIP_KEY } from "@/services/versioning";
@@ -43,12 +44,14 @@ export function toggleOptions(event?: Event): void {
 
 /** Open the panel on the given tab */
 export function openTab(id: string): void {
+  if (isKingdomOSAtlas() && !["layersTab","styleTab","aboutTab"].includes(id)) return;
   showOptions();
   selectTab(id);
 }
 
 /** Show the clicked tab, hiding whichever was open. Tools swaps in the customization menu instead */
 function selectTab(id: string): void {
+  if (isKingdomOSAtlas() && !["layersTab","styleTab","aboutTab"].includes(id)) return;
   const active = ensureEl("options").querySelector(".tab > button.active");
   if (active?.id === id) return;
   if (active?.id === "styleTab") void Controllers.StyleEditor.close();
@@ -110,6 +113,7 @@ function initialize(): void {
 
   ensureEl("sticked").addEventListener("click", event => {
     const id = (event.target as HTMLElement).id;
+    if (isKingdomOSAtlas() && id !== "zoomReset") return;
     if (id === "newMapButton") regeneratePrompt();
     else if (id === "saveButton") showSavePane();
     else if (id === "exportButton") showExportPane();
@@ -120,7 +124,7 @@ function initialize(): void {
 
   ensureEl("viewMode").addEventListener("click", changeViewMode);
   ensureEl("optionsTrigger").addEventListener("click", showOptions);
-  ensureEl("regenerate").addEventListener("click", () => regeneratePrompt());
+  ensureEl("regenerate").addEventListener("click", () => {if (!isKingdomOSAtlas()) regeneratePrompt();});
   ensureEl("optionsHide").addEventListener("click", hideOptions);
 }
 

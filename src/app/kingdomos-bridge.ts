@@ -3,11 +3,12 @@
  */
 import { mapHistory } from "@/model/map-history";
 import { VERSION } from "@/services/versioning";
+import { applyAtlasReadOnly, isKingdomOSAtlas, kingdomOSMode } from "@/app/kingdomos-mode";
 
 const PROTOCOL = "kingdomos-azgaar";
 const PROTOCOL_VERSION = 1;
 type Command = "summary" | "snapshot" | "capture" | "import-map" | "new-map" | "fit";
-const embedded = window.parent !== window && new URLSearchParams(location.search).get("kingdomos") === "1";
+const embedded = kingdomOSMode !== null;
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -32,6 +33,11 @@ function send(kind: "event" | "result", name: string, data: unknown, id?: string
 }
 
 async function run(name: Command, payload: unknown): Promise<unknown> {
+  // The Atlas is a browsing instance. The parent may load an already-published
+  // native map, but cannot regenerate, capture or export an edited project.
+  if (isKingdomOSAtlas() && !["summary","import-map","fit"].includes(name)) {
+    throw new Error("This command is only available in the World Editor.");
+  }
   if (name === "summary") return summary();
   if (name === "snapshot") {
     if (options.app.mode) throw new Error("Finish the active map edit before capturing a world.");
@@ -100,9 +106,13 @@ if (embedded) {
   window.addEventListener("message", receive);
   // Unlike "ready", booted means the initial map/load pipeline has completed,
   // so a persisted KingdomOS workspace can safely replace Azgaar's startup map.
-  window.addEventListener("kingdomos:booted", () => send("event", "booted", summary()));
+  window.addEventListener("kingdomos:booted", () => {
+    applyAtlasReadOnly();
+    send("event", "booted", summary());
+  });
   window.addEventListener("map:generated", () => {
+    applyAtlasReadOnly();
     try { send("event", "world-changed", summary()); } catch { /* map still starting */ }
   });
-  send("event", "ready", { generatorVersion: VERSION, protocolVersion: PROTOCOL_VERSION });
+  send("event", "ready", { generatorVersion: VERSION, protocolVersion: PROTOCOL_VERSION, mode: kingdomOSMode });
 }

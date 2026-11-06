@@ -1,5 +1,6 @@
 // The app window itself: the SVG layer scaffold, browser-level behaviours
 
+import { isKingdomOSAtlas } from "@/app/kingdomos-mode";
 import { Controllers } from "@/controllers";
 import { Options } from "@/model/options/options-model";
 import { Pins } from "@/model/options/pins";
@@ -127,6 +128,9 @@ function addDragToUpload(): void {
   });
 
   document.addEventListener("drop", event => {
+    if (isKingdomOSAtlas()) {
+      event.stopPropagation();event.preventDefault();overlay().style.display = "none";return;
+    }
     event.stopPropagation();
     event.preventDefault();
 

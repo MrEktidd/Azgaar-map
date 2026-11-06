@@ -1,4 +1,5 @@
 import { Controllers } from "@/controllers";
+import { isKingdomOSAtlas } from "@/app/kingdomos-mode";
 import { Pack } from "@/model/graph/pack-generator";
 import { type EntityRef, MapEntities } from "@/model/map-entities";
 import { Layers } from "@/renderers/layers";
@@ -26,6 +27,7 @@ class ContextMenuController {
   private point: [number, number] = [0, 0]; // where the menu was opened, in map units
 
   open(event: MouseEvent): void {
+    if (isKingdomOSAtlas()) return;
     this.close();
     const viewbox = findEl("viewbox");
     if (!viewbox || !pack.cells?.p) return;

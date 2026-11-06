@@ -1,4 +1,5 @@
 import { hideOptions, toggleOptions } from "@/app/chrome/options-panel";
+import { isKingdomOSAtlas, isAtlasBrowsingShortcut } from "@/app/kingdomos-mode";
 import { Controllers } from "@/controllers";
 import { Layers } from "@/renderers/layers";
 import { Services } from "@/services";
@@ -17,6 +18,12 @@ document.addEventListener("keydown", handleKeydown);
 document.addEventListener("keyup", handleKeyup);
 
 function handleKeydown(event: KeyboardEvent): void {
+  if (isKingdomOSAtlas() && !isAtlasBrowsingShortcut(event)) {
+    // Do not invoke Azgaar's generator, importer, file saves or editor hotkeys.
+    if (["F2","F6","F9","Delete"].includes(event.code) ||
+        ((event.ctrlKey || event.metaKey) && ["KeyS","KeyO"].includes(event.code))) event.preventDefault();
+    return;
+  }
   if (!allowHotkeys()) return; // in some cases (e.g. in a textarea) hotkeys are not allowed
 
   const { code, ctrlKey, metaKey, altKey, shiftKey } = event;
@@ -31,6 +38,7 @@ function handleKeydown(event: KeyboardEvent): void {
 }
 
 function handleKeyup(event: KeyboardEvent): void {
+  if (isKingdomOSAtlas() && !isAtlasBrowsingShortcut(event)) return;
   if (!allowHotkeys()) return; // in some cases (e.g. in a textarea) hotkeys are not allowed
 
   event.stopPropagation();

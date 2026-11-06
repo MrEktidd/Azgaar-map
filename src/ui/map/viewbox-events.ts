@@ -1,5 +1,6 @@
 // Default interaction on the map canvas: pan/zoom, click-to-edit, the context menu and hover tooltips
 import { drag, select } from "d3";
+import { isKingdomOSAtlas } from "@/app/kingdomos-mode";
 import { Controllers } from "@/controllers";
 import type { LabelType } from "@/model/annotations/labels-generator";
 import { dragLegendBox, legendBoxFromEvent } from "@/renderers/draw-legend";
@@ -74,6 +75,7 @@ const GREAT_EDITORS: Record<string, Opener> = {
 
 /** Open the editor for a map element, as a click on it does; false when it has none */
 export function openEditor(element: Element): boolean {
+  if (isKingdomOSAtlas()) return false;
   const target = element as SVGElement;
   const parent = target.parentElement as SVGElement | null;
   const grand = parent?.parentElement as SVGElement | null;
@@ -100,12 +102,12 @@ export function openEditor(element: Element): boolean {
 }
 
 function onClick(event: MouseEvent): void {
-  if (event?.target && !options.map.viewOnly) openEditor(event.target as Element);
+  if (event?.target && !options.map.viewOnly && !isKingdomOSAtlas()) openEditor(event.target as Element);
 }
 
 /** Right-click on the map belongs to the context menu; Shift+right-click keeps the browser's own */
 function onContextMenu(event: MouseEvent): void {
-  if (event.shiftKey || options.app.mode || options.map.viewOnly) return;
+  if (event.shiftKey || options.app.mode || options.map.viewOnly || isKingdomOSAtlas()) return;
   event.preventDefault();
   Controllers.ContextMenu.open(event);
 }

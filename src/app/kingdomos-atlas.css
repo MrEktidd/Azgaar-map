@@ -1,0 +1,17 @@
+/* Browser-only controls. This styles the iframe document, not the parent OS. */
+html[data-kingdomos-mode="atlas"] #optionsTab,
+html[data-kingdomos-mode="atlas"] #toolsTab,
+html[data-kingdomos-mode="atlas"] #optionsContent,
+html[data-kingdomos-mode="atlas"] #toolsContent,
+html[data-kingdomos-mode="atlas"] #heightmapMenu,
+html[data-kingdomos-mode="atlas"] #newMapButton,
+html[data-kingdomos-mode="atlas"] #loadButton,
+html[data-kingdomos-mode="atlas"] #saveButton,
+html[data-kingdomos-mode="atlas"] #exportButton,
+html[data-kingdomos-mode="atlas"] #searchButton,
+html[data-kingdomos-mode="atlas"] #regenerate,
+html[data-kingdomos-mode="atlas"] #assistantBubble,
+html[data-kingdomos-mode="atlas"] #tourPromptButton {display:none!important}
+
+html[data-kingdomos-mode="atlas"] #sticked {display:flex;justify-content:flex-end}
+html[data-kingdomos-mode="atlas"] #tooltip[data-main] {max-width:min(450px,70vw)}
