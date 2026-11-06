@@ -53,7 +53,7 @@ export async function boot(): Promise<void> {
   }
 
   initiateAutosave();
-  if (window.parent !== window && new URLSearchParams(location.search).get("kingdomos") === "1") {
+  if (window.parent !== window && ["1", "atlas"].includes(new URLSearchParams(location.search).get("kingdomos") ?? "")) {
     window.dispatchEvent(new Event("kingdomos:booted"));
   }
 }
