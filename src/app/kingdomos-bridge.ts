@@ -6,7 +6,7 @@ import { VERSION } from "@/services/versioning";
 
 const PROTOCOL = "kingdomos-azgaar";
 const PROTOCOL_VERSION = 1;
-type Command = "summary" | "snapshot" | "capture" | "import-map" | "new-map";
+type Command = "summary" | "snapshot" | "capture" | "import-map" | "new-map" | "fit";
 const embedded = window.parent !== window && new URLSearchParams(location.search).get("kingdomos") === "1";
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -57,6 +57,11 @@ async function run(name: Command, payload: unknown): Promise<unknown> {
     }
     return { summary: capturedSummary, mapText, preview };
   }
+  if (name === "fit") {
+    const { fitMapToScreen } = await import("@/ui/map/canvas");
+    fitMapToScreen();
+    return { ok: true };
+  }
   if (name === "import-map") {
     if (!isObject(payload) || !(payload.file instanceof Blob) ||
         typeof payload.name !== "string" || !/\.(map|gz)$/i.test(payload.name)) {
@@ -84,7 +89,7 @@ function receive(event: MessageEvent): void {
   if (!isObject(message) || message.protocol !== PROTOCOL ||
       message.version !== PROTOCOL_VERSION || message.kind !== "command") return;
   if (typeof message.id !== "string" || message.id.length > 100) return;
-  if (!["summary","snapshot","capture","import-map","new-map"].includes(String(message.name))) return;
+  if (!["summary","snapshot","capture","import-map","new-map","fit"].includes(String(message.name))) return;
   const id = message.id;
   void run(message.name as Command, message.payload)
     .then(value => send("result", "ok", value, id))
